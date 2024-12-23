@@ -1,0 +1,32 @@
+{
+  "name": "openai-embeddings-generator",
+  "version": "1.0.0",
+  "description": "Utility for generating and storing OpenAI embeddings",
+  "type": "module",
+  "main": "generate_embeddings.js",
+  "scripts": {
+    "example": "node generate_embeddings.js",
+    "store": "node store_embeddings.js",
+    "search": "node semantic_search.js",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:generate": "node --experimental-vm-modules node_modules/jest/bin/jest.js generate_embeddings.test.js",
+    "test:store": "node --experimental-vm-modules node_modules/jest/bin/jest.js store_embeddings.test.js",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.0.0",
+    "dotenv": "^16.0.0",
+    "openai": "^4.0.0"
+  },
+  "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "jest": "^29.7.0"
+  },
+  "jest": {
+    "transform": {},
+    "testEnvironment": "node"
+  },
+  "keywords": ["openai", "embeddings", "supabase", "semantic-search", "ai", "nlp", "testing"],
+  "author": "",
+  "license": "ISC"
+}

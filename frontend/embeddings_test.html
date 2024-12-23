@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Embeddings Generation and Search</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .section {
+            background-color: #f4f4f4;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        input, textarea, button {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Embeddings Generation and Search</h1>
+
+    <div class="section">
+        <h2>Generate and Store Embeddings</h2>
+        <textarea id="contentInput" placeholder="Enter text to generate embeddings" rows="4"></textarea>
+        <button onclick="generateAndStoreEmbeddings()">Generate and Store Embeddings</button>
+        <div id="generateStatus"></div>
+    </div>
+
+    <div class="section">
+        <h2>Semantic Search</h2>
+        <input type="text" id="searchQuery" placeholder="Enter search keywords">
+        <button onclick="performSemanticSearch()">Search</button>
+        <div id="searchStatus"></div>
+        <table id="searchResults">
+            <thead>
+                <tr>
+                    <th>Content</th>
+                    <th>Match Score</th>
+                </tr>
+            </thead>
+            <tbody id="searchResultsBody"></tbody>
+        </table>
+    </div>
+
+    <script type="module">
+        import { generateEmbeddings } from '../EmbeddingsManagement/generate_embeddings.js';
+        import { storeEmbeddings } from '../EmbeddingsManagement/store_embeddings.js';
+        import { semanticSearch } from '../EmbeddingsManagement/semantic_search.js';
+
+        // Global error handler
+        window.addEventListener('error', function(event) {
+            console.error('Uncaught error:', event.error);
+            document.getElementById('generateStatus').innerHTML = 
+                `<span class="error">Error: ${event.error.message}</span>`;
+        });
+
+        // Generate and store embeddings
+        window.generateAndStoreEmbeddings = async function() {
+            const contentInput = document.getElementById('contentInput');
+            const generateStatus = document.getElementById('generateStatus');
+
+            if (!contentInput.value.trim()) {
+                generateStatus.innerHTML = '<span class="error">Please enter some text</span>';
+                return;
+            }
+
+            generateStatus.innerHTML = '<span class="loading">Generating embeddings...</span>';
+
+            try {
+                // Generate embeddings
+                const embedding = await generateEmbeddings(contentInput.value);
+                
+                // Store embeddings
+                await storeEmbeddings(contentInput.value, embedding);
+                
+                generateStatus.innerHTML = '<span style="color: green;">Embeddings generated and stored successfully!</span>';
+                contentInput.value = ''; // Clear input
+            } catch (error) {
+                console.error('Error:', error);
+                generateStatus.innerHTML = `<span class="error">Error: ${error.message}</span>`;
+            }
+        };
+
+        // Perform semantic search
+        window.performSemanticSearch = async function() {
+            const searchQuery = document.getElementById('searchQuery');
+            const searchStatus = document.getElementById('searchStatus');
+            const searchResultsBody = document.getElementById('searchResultsBody');
+
+            if (!searchQuery.value.trim()) {
+                searchStatus.innerHTML = '<span class="error">Please enter a search query</span>';
+                return;
+            }
+
+            searchStatus.innerHTML = '<span class="loading">Searching...</span>';
+            searchResultsBody.innerHTML = ''; // Clear previous results
+
+            try {
+                // Perform semantic search
+                const { documents } = await semanticSearch(searchQuery.value);
+                
+                if (documents.length === 0) {
+                    searchStatus.innerHTML = '<span class="error">No matching documents found</span>';
+                    return;
+                }
+
+                // Populate results table
+                documents.forEach((doc, index) => {
+                    const row = searchResultsBody.insertRow();
+                    const contentCell = row.insertCell(0);
+                    const scoreCell = row.insertCell(1);
+                    
+                    contentCell.textContent = doc.content;
+                    // Note: Actual match score calculation would require more complex logic
+                    scoreCell.textContent = (1 - index * 0.2).toFixed(2);
+                });
+
+                searchStatus.innerHTML = `<span style="color: green;">${documents.length} matching documents found</span>`;
+            } catch (error) {
+                console.error('Search error:', error);
+                searchStatus.innerHTML = `<span class="error">Error: ${error.message}</span>`;
+            }
+        };
+    </script>
+</body>
+</html>
